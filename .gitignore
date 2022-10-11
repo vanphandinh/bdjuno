@@ -1,4 +1,8 @@
+# IDEs
+.vscode/
 .idea/
+
+# build
 build/
 
 # Configuration
@@ -8,3 +12,6 @@ config.yaml
 
 # Coverage
 coverage.*
+
+# Workspaces
+go.work
