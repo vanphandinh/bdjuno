@@ -4,23 +4,24 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/simapp/params"
-	"github.com/forbole/juno/v3/node/remote"
+	"github.com/forbole/juno/v4/node/remote"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/forbole/juno/v3/node/local"
+	"github.com/forbole/juno/v4/node/local"
 	mintkeeper "github.com/ingenuity-build/quicksilver/x/mint/keeper"
 	minttypes "github.com/ingenuity-build/quicksilver/x/mint/types"
 
-	nodeconfig "github.com/forbole/juno/v3/node/config"
+	nodeconfig "github.com/forbole/juno/v4/node/config"
 
 	banksource "github.com/forbole/bdjuno/v3/modules/bank/source"
 	localbanksource "github.com/forbole/bdjuno/v3/modules/bank/source/local"
@@ -72,13 +73,13 @@ func buildLocalSources(cfg *local.Details, encodingConfig *params.EncodingConfig
 
 	app := quicksilverapp.NewQuicksilver(
 		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), source.StoreDB, nil, true, map[int64]bool{},
-		cfg.Home, 0, quicksilverapp.MakeEncodingConfig(), simapp.EmptyAppOptions{},
+		cfg.Home, 0, quicksilverapp.MakeEncodingConfig(), wasm.EnableAllProposals, simapp.EmptyAppOptions{}, quicksilverapp.GetWasmOpts(simapp.EmptyAppOptions{}), false,
 	)
 
 	sources := &Sources{
 		BankSource:     localbanksource.NewSource(source, banktypes.QueryServer(app.BankKeeper)),
 		DistrSource:    localdistrsource.NewSource(source, distrtypes.QueryServer(app.DistrKeeper)),
-		GovSource:      localgovsource.NewSource(source, govtypes.QueryServer(app.GovKeeper)),
+		GovSource:      localgovsource.NewSource(source, govtypesv1.QueryServer(app.GovKeeper)),
 		MintSource:     localmintsource.NewSource(source, mintkeeper.Querier{Keeper: app.MintKeeper}),
 		SlashingSource: localslashingsource.NewSource(source, slashingtypes.QueryServer(app.SlashingKeeper)),
 		StakingSource:  localstakingsource.NewSource(source, stakingkeeper.Querier{Keeper: app.StakingKeeper}),
@@ -117,7 +118,7 @@ func buildRemoteSources(cfg *remote.Details) (*Sources, error) {
 	return &Sources{
 		BankSource:     remotebanksource.NewSource(source, banktypes.NewQueryClient(source.GrpcConn)),
 		DistrSource:    remotedistrsource.NewSource(source, distrtypes.NewQueryClient(source.GrpcConn)),
-		GovSource:      remotegovsource.NewSource(source, govtypes.NewQueryClient(source.GrpcConn)),
+		GovSource:      remotegovsource.NewSource(source, govtypesv1.NewQueryClient(source.GrpcConn)),
 		MintSource:     remotemintsource.NewSource(source, minttypes.NewQueryClient(source.GrpcConn)),
 		SlashingSource: remoteslashingsource.NewSource(source, slashingtypes.NewQueryClient(source.GrpcConn)),
 		StakingSource:  remotestakingsource.NewSource(source, stakingtypes.NewQueryClient(source.GrpcConn)),
