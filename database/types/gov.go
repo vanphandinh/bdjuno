@@ -2,6 +2,8 @@ package types
 
 import (
 	"time"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 // GovParamsRow represents a single row of the "gov_params" table
@@ -17,28 +19,22 @@ type GovParamsRow struct {
 
 // ProposalRow represents a single row inside the proposal table
 type ProposalRow struct {
-	Title           string    `db:"title"`
-	Description     string    `db:"description"`
-	Content         string    `db:"content"`
-	ProposalRoute   string    `db:"proposal_route"`
-	ProposalType    string    `db:"proposal_type"`
-	ProposalID      uint64    `db:"id"`
-	SubmitTime      *time.Time `db:"submit_time"`
-	DepositEndTime  *time.Time `db:"deposit_end_time"`
-	VotingStartTime *time.Time `db:"voting_start_time"`
-	VotingEndTime   *time.Time `db:"voting_end_time"`
-	Proposer        string    `db:"proposer_address"`
-	Status          string    `db:"status"`
+	ProposalID      uint64            `db:"id"`
+	Messages        []*codectypes.Any `db:"messages"`
+	Metadata        string            `db:"metadata"`
+	SubmitTime      *time.Time        `db:"submit_time"`
+	DepositEndTime  *time.Time        `db:"deposit_end_time"`
+	VotingStartTime *time.Time        `db:"voting_start_time"`
+	VotingEndTime   *time.Time        `db:"voting_end_time"`
+	Proposer        string            `db:"proposer_address"`
+	Status          string            `db:"status"`
 }
 
 // NewProposalRow allows to easily create a new ProposalRow
 func NewProposalRow(
 	proposalID uint64,
-	proposalRoute string,
-	proposalType string,
-	title string,
-	description string,
-	content string,
+	messages []*codectypes.Any,
+	metadata string,
 	submitTime *time.Time,
 	depositEndTime *time.Time,
 	votingStartTime *time.Time,
@@ -47,12 +43,9 @@ func NewProposalRow(
 	status string,
 ) ProposalRow {
 	return ProposalRow{
-		Title:           title,
-		Description:     description,
-		Content:         content,
-		ProposalRoute:   proposalRoute,
-		ProposalType:    proposalType,
 		ProposalID:      proposalID,
+		Messages:        messages,
+		Metadata:        metadata,
 		SubmitTime:      submitTime,
 		DepositEndTime:  depositEndTime,
 		VotingStartTime: votingStartTime,
@@ -64,11 +57,8 @@ func NewProposalRow(
 
 // Equals return true if two ProposalRow are the same
 func (w ProposalRow) Equals(v ProposalRow) bool {
-	return w.Title == v.Title &&
-		w.Description == v.Description &&
-		w.ProposalRoute == v.ProposalRoute &&
-		w.ProposalType == v.ProposalType &&
-		w.ProposalID == v.ProposalID &&
+	return w.ProposalID == v.ProposalID &&
+		w.Metadata == v.Metadata &&
 		w.SubmitTime == v.SubmitTime &&
 		w.DepositEndTime == v.DepositEndTime &&
 		w.VotingStartTime == v.VotingStartTime &&

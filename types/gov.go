@@ -5,7 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
 const (
@@ -19,7 +20,7 @@ type DepositParams struct {
 }
 
 // NewDepositParam allows to build a new DepositParams
-func NewDepositParam(d govtypes.DepositParams) DepositParams {
+func NewDepositParam(d *govtypesv1.DepositParams) DepositParams {
 	return DepositParams{
 		MinDeposit:       d.MinDeposit,
 		MaxDepositPeriod: d.MaxDepositPeriod.Nanoseconds(),
@@ -32,7 +33,7 @@ type VotingParams struct {
 }
 
 // NewVotingParams allows to build a new VotingParams instance
-func NewVotingParams(v govtypes.VotingParams) VotingParams {
+func NewVotingParams(v *govtypesv1.VotingParams) VotingParams {
 	return VotingParams{
 		VotingPeriod: v.VotingPeriod.Nanoseconds(),
 	}
@@ -48,13 +49,13 @@ type GovParams struct {
 
 // TallyParams contains the tally parameters of the x/gov module
 type TallyParams struct {
-	Quorum        sdk.Dec `json:"quorum,omitempty"`
-	Threshold     sdk.Dec `json:"threshold,omitempty"`
-	VetoThreshold sdk.Dec `json:"veto_threshold,omitempty" yaml:"veto_threshold"`
+	Quorum        string `json:"quorum,omitempty"`
+	Threshold     string `json:"threshold,omitempty"`
+	VetoThreshold string `json:"veto_threshold,omitempty" yaml:"veto_threshold"`
 }
 
 // NewTallyParams allows to build a new TallyParams instance
-func NewTallyParams(t govtypes.TallyParams) TallyParams {
+func NewTallyParams(t *govtypesv1.TallyParams) TallyParams {
 	return TallyParams{
 		Quorum:        t.Quorum,
 		Threshold:     t.Threshold,
@@ -76,36 +77,33 @@ func NewGovParams(votingParams VotingParams, depositParams DepositParams, tallyP
 
 // Proposal represents a single governance proposal
 type Proposal struct {
-	ProposalRoute   string
-	ProposalType    string
 	ProposalID      uint64
-	Content         govtypes.Content
+	Messages        []*codectypes.Any
+	Metadata        string
 	Status          string
-	SubmitTime      time.Time
-	DepositEndTime  time.Time
-	VotingStartTime time.Time
-	VotingEndTime   time.Time
+	SubmitTime      *time.Time
+	DepositEndTime  *time.Time
+	VotingStartTime *time.Time
+	VotingEndTime   *time.Time
 	Proposer        string
 }
 
 // NewProposal return a new Proposal instance
 func NewProposal(
 	proposalID uint64,
-	proposalRoute string,
-	proposalType string,
-	content govtypes.Content,
+	messages []*codectypes.Any,
+	metadata string,
 	status string,
-	submitTime time.Time,
-	depositEndTime time.Time,
-	votingStartTime time.Time,
-	votingEndTime time.Time,
+	submitTime *time.Time,
+	depositEndTime *time.Time,
+	votingStartTime *time.Time,
+	votingEndTime *time.Time,
 	proposer string,
 ) Proposal {
 	return Proposal{
-		Content:         content,
-		ProposalRoute:   proposalRoute,
-		ProposalType:    proposalType,
 		ProposalID:      proposalID,
+		Messages:        messages,
+		Metadata:        metadata,
 		Status:          status,
 		SubmitTime:      submitTime,
 		DepositEndTime:  depositEndTime,
@@ -117,15 +115,13 @@ func NewProposal(
 
 // Equal tells whether p and other contain the same data
 func (p Proposal) Equal(other Proposal) bool {
-	return p.ProposalRoute == other.ProposalRoute &&
-		p.ProposalType == other.ProposalType &&
-		p.ProposalID == other.ProposalID &&
-		p.Content.String() == other.Content.String() &&
+	return p.ProposalID == other.ProposalID &&
+		p.Metadata == other.Metadata &&
 		p.Status == other.Status &&
-		p.SubmitTime.Equal(other.SubmitTime) &&
-		p.DepositEndTime.Equal(other.DepositEndTime) &&
-		p.VotingStartTime.Equal(other.VotingStartTime) &&
-		p.VotingEndTime.Equal(other.VotingEndTime) &&
+		p.SubmitTime == other.SubmitTime &&
+		p.DepositEndTime == other.DepositEndTime &&
+		p.VotingStartTime == other.VotingStartTime &&
+		p.VotingEndTime == other.VotingEndTime &&
 		p.Proposer == other.Proposer
 }
 
@@ -133,13 +129,13 @@ func (p Proposal) Equal(other Proposal) bool {
 type ProposalUpdate struct {
 	ProposalID      uint64
 	Status          string
-	VotingStartTime time.Time
-	VotingEndTime   time.Time
+	VotingStartTime *time.Time
+	VotingEndTime   *time.Time
 }
 
 // NewProposalUpdate allows to build a new ProposalUpdate instance
 func NewProposalUpdate(
-	proposalID uint64, status string, votingStartTime, votingEndTime time.Time,
+	proposalID uint64, status string, votingStartTime, votingEndTime *time.Time,
 ) ProposalUpdate {
 	return ProposalUpdate{
 		ProposalID:      proposalID,
@@ -183,7 +179,7 @@ func NewDeposit(
 type Vote struct {
 	ProposalID uint64
 	Voter      string
-	Option     govtypes.VoteOption
+	Option     govtypesv1.VoteOption
 	Timestamp  time.Time
 	Height     int64
 }
@@ -192,7 +188,7 @@ type Vote struct {
 func NewVote(
 	proposalID uint64,
 	voter string,
-	option govtypes.VoteOption,
+	option govtypesv1.VoteOption,
 	timestamp time.Time,
 	height int64,
 ) Vote {

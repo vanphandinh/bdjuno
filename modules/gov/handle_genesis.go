@@ -9,6 +9,8 @@ import (
 	"github.com/forbole/bdjuno/v3/types"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
 	"github.com/rs/zerolog/log"
 )
 
@@ -17,7 +19,7 @@ func (m *Module) HandleGenesis(doc *tmtypes.GenesisDoc, appState map[string]json
 	log.Debug().Str("module", "gov").Msg("parsing genesis")
 
 	// Read the genesis state
-	var genState govtypes.GenesisState
+	var genState govtypesv1.GenesisState
 	err := m.cdc.UnmarshalJSON(appState[govtypes.ModuleName], &genState)
 	if err != nil {
 		return fmt.Errorf("error while reading gov genesis data: %s", err)
@@ -44,7 +46,7 @@ func (m *Module) HandleGenesis(doc *tmtypes.GenesisDoc, appState map[string]json
 }
 
 // saveProposals save proposals from genesis file
-func (m *Module) saveProposals(slice govtypes.Proposals, genDoc *tmtypes.GenesisDoc) error {
+func (m *Module) saveProposals(slice govtypesv1.Proposals, genDoc *tmtypes.GenesisDoc) error {
 	proposals := make([]types.Proposal, len(slice))
 	tallyResults := make([]types.TallyResult, len(slice))
 	deposits := make([]types.Deposit, len(slice))
@@ -52,10 +54,9 @@ func (m *Module) saveProposals(slice govtypes.Proposals, genDoc *tmtypes.Genesis
 	for index, proposal := range slice {
 		// Since it's not possible to get the proposer, set it to nil
 		proposals[index] = types.NewProposal(
-			proposal.ProposalId,
-			proposal.ProposalRoute(),
-			proposal.ProposalType(),
-			proposal.GetContent(),
+			proposal.Id,
+			proposal.Messages,
+			proposal.GetMetadata(),
 			proposal.Status.String(),
 			proposal.SubmitTime,
 			proposal.DepositEndTime,
@@ -65,16 +66,16 @@ func (m *Module) saveProposals(slice govtypes.Proposals, genDoc *tmtypes.Genesis
 		)
 
 		tallyResults[index] = types.NewTallyResult(
-			proposal.ProposalId,
-			proposal.FinalTallyResult.Yes.String(),
-			proposal.FinalTallyResult.Abstain.String(),
-			proposal.FinalTallyResult.No.String(),
-			proposal.FinalTallyResult.NoWithVeto.String(),
+			proposal.Id,
+			proposal.FinalTallyResult.YesCount,
+			proposal.FinalTallyResult.AbstainCount,
+			proposal.FinalTallyResult.NoCount,
+			proposal.FinalTallyResult.NoWithVetoCount,
 			genDoc.InitialHeight,
 		)
 
 		deposits[index] = types.NewDeposit(
-			proposal.ProposalId,
+			proposal.Id,
 			"",
 			proposal.TotalDeposit,
 			genDoc.GenesisTime,
