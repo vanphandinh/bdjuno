@@ -16,7 +16,7 @@ import (
 	"github.com/forbole/bdjuno/v3/database"
 	"github.com/forbole/bdjuno/v3/modules"
 
-	strideapp "github.com/Stride-Labs/stride/v4/app"
+	strideapp "github.com/Stride-Labs/stride/v3/app"
 	gaiaapp "github.com/cosmos/gaia/v7/app"
 )
 

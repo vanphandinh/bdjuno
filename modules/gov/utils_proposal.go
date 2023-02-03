@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	minttypes "github.com/Stride-Labs/stride/v4/x/mint/types"
-	stakeibctypes "github.com/Stride-Labs/stride/v4/x/stakeibc/types"
+	minttypes "github.com/Stride-Labs/stride/v3/x/mint/types"
+	stakeibctypes "github.com/Stride-Labs/stride/v3/x/stakeibc/types"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
