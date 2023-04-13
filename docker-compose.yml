@@ -1,6 +1,8 @@
 version: '3.6'
+
 services:
   hasura:
+    container_name: hasura
     image: hasura/graphql-engine:v2.0.4
     ports:
     - "8080:8080"
@@ -15,12 +17,22 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       ## uncomment next line to set an admin secret
       # HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+    networks:
+      - explorer
   bdjuno:
+    container_name: bdjuno
+    image: bdjuno
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.default
     restart: always
-    command: bdjuno parse --home /bdjuno/.bdjuno
+    command: bdjuno start --home /bdjuno/.bdjuno
     volumes:
       ## Modify first path to match configuration file.
-      - /bdjuno/.bdjuno:/bdjuno/.bdjuno
+      - ./bdjuno-data:/bdjuno/.bdjuno
+    networks:
+      - explorer
+
+networks:
+  explorer:
+    external: true
